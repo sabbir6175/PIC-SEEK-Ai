@@ -1,8 +1,8 @@
 import { useContext } from "react";
 import PageTitle from "../components/shared/PageTitle";
 import { AuthContext } from "../provider/AuthProvider";
-import Swal from "sweetalert2";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const Create = () => {
   const { user, login } = useContext(AuthContext);
@@ -36,6 +36,7 @@ const Create = () => {
             })
             .catch((err) => {
               console.log(err);
+              Swal.fire("Error", "Login failed. Please try again.", "error"); // Added error for login
             });
         }
       });
@@ -59,14 +60,11 @@ const Create = () => {
       Swal.fire("Write a Prompt", "Write a prompt in the input", "error");
       return false;
     }
-    if (!prompt) {
-      Swal.fire("Write a Prompt", "Write a prompt in the input", "error");
-      return false;
-    }
+    // This 'if (!prompt)' check is redundant, removed it.
     if (prompt.trim().length < 20) {
       Swal.fire(
         "Invalid Prompt",
-        "make your prompt bigger (minimum 20 character)",
+        "Make your prompt bigger (minimum 20 characters)",
         "error"
       );
       return false;
@@ -75,7 +73,7 @@ const Create = () => {
     return true;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => { // Keep async, it's good practice for API calls
     e.preventDefault();
     const form = e.target;
     const prompt = form.prompt.value;
@@ -84,9 +82,19 @@ const Create = () => {
     if (!checkUser()) return;
     if (!validate(prompt, category)) return;
 
+    // Show a loading SweetAlert while the image is being generated
+    Swal.fire({
+      title: 'Generating Image...',
+      text: 'Please wait while we create your masterpiece!',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     console.log({ prompt, category });
-    axios
-      .post("http://localhost:5000/api/v1/image/create", {
+    try {
+      const res = await axios.post("http://localhost:5000/api/v1/image/create", {
         email: user?.email,
         prompt,
         category,
@@ -94,14 +102,18 @@ const Create = () => {
         userImg:
           user?.photoURL ||
           "https://img.icons8.com/?size=96&id=z-JBA_KtSkxG&format=png",
-      })
-      .then((res) => {
-        console.log(res.data);
       });
 
-    // const blob = new Blob([buffer], { type: "image/jpeg" }); // Set correct MIME type
-    // const url = URL.createObjectURL(blob);
-    // console.log(url);
+      console.log(res.data);
+      Swal.fire("Success!", "Your image has been created!", "success"); // Success message
+      form.reset(); // Optionally reset the form on success
+      // You might want to update state here to display the image or redirect
+      // For example:
+      // setImageData(res.data.imageUrl); // Assuming res.data contains an image URL
+    } catch (error) {
+      console.error("Error creating image:", error);
+      Swal.fire("Error!", "Failed to create image. Please try again.", "error"); // Error message
+    }
   };
 
   return (
@@ -141,7 +153,7 @@ const Create = () => {
             ))}
           </select>
           <div className="indicator">
-            <button className="btn join-item btn-primary">Create</button>
+            <button type="submit" className="btn join-item btn-primary">Create</button>
           </div>
         </form>
       </div>

@@ -11,9 +11,9 @@ const Creations = () => {
   }, []);
 
   return (
-    <div>
+    <div >
       <PageTitle>All Creations</PageTitle>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 px-10 py-10">
         {images.map((img) => (
           <div key={img._id}>
             <div className="card bg-base-100  shadow-xl relative">
@@ -21,7 +21,7 @@ const Creations = () => {
                 <img src={img.thumb_img} alt="Shoes" className="w-full" />
               </figure>
               <div className="card-body absolute bottom-[10px] ">
-                <Link to={`/creation/${img._id}`} className="btn btn-primary">
+                <Link to={`/creation/${img._id}`} className="btn bg-gradient-to-b lg:bg-gradient-to-l from-cyan-100">
                   Details
                 </Link>
               </div>
